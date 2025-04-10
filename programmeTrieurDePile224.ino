@@ -19,7 +19,10 @@ long alternanceAffichage = 0;
 _               fonction d'affichage qui prend pour parametre la tension de la pile
 _               distinction des cas au regard de la tension de la pile
 _               si tension appartient a [0,1.7] : affiche tension, allume led et conditionCompteur++
-_               ainsi conditionCOmpteur est incrémentée plusieur fois pour le test d'une meme pile
+_               ainsi conditionCOmpteur est incrémentée plusieurs fois pour le test d'une meme pile, mais on ne compte la pile que quand conditionCOmpteur==4
+_               cela permet de ne pas incrementer plusieurs fois compteurPileTestees pour une meme pile
+
+_               Si tension n'appartient pas a [0,1.7] : affiche pourcentage ou nb de piles sauvees
 
 */
 void affichage(float U) {
@@ -85,16 +88,15 @@ void affichage(float U) {
     }
 
     conditionCompteur++;
-    if (conditionCompteur == 171) {
+    if (conditionCompteur == 4) {
       if (U > 1.1) {
-        if (compteurPilesSauvees==3){creu();}
+        if (compteurPilesSauvees==171){creu();}// j'avoue, je suis super drole
         compteurPilesSauvees++;
-
-              EEPROM.put(172,compteurPilesSauvees);
+        EEPROM.put(172,compteurPilesSauvees);
       }
       compteurPilesTestees++;
       alternanceAffichage++;
-            EEPROM.put(18,compteurPilesTestees);
+      EEPROM.put(18,compteurPilesTestees);
     }
   }
 }
@@ -117,8 +119,10 @@ float lectureTension() {
 
   return (sommeMoyGlissante / 4);
 }
-//____________________________________________________________________________
 
+
+//____________________________________________________________________________ partie débile
+// cherche pas c'est débile
 void creu(){
   lcd.clear();
   lcd.home();
@@ -146,24 +150,20 @@ for (int i=0;i<100;i++){
 
 void setup() {
   Serial.begin(9600);
-
   lcd.begin(16, 2);    //On initialise l'écran
   pinMode(2, OUTPUT);  //Les pins 2,3,4 sont les relais liés aux leds
   pinMode(3, OUTPUT);  //orange
   pinMode(4, OUTPUT);  //vert
-
-
   lcd.setRGB(0, 0, 0);  //Définit la couleur de l'écran en RGB
   lcd.setCursor(0, 0);  //Définit la position du curseur (16×2)
 
   digitalWrite(2, LOW);
   digitalWrite(3, LOW);
   digitalWrite(4, LOW);
-  pinMode(A3, INPUT_PULLUP);
+  pinMode(A3, INPUT_PULLUP); // la mesure de tension lorsque pas de pile renvoie 1024 et pas 0
 
   EEPROM.get(18, compteurPilesTestees);
   EEPROM.get(172, compteurPilesSauvees);
-
 }
 
 void loop() {
